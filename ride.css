@@ -1,0 +1,50 @@
+/* General Layout */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f7f9;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  color: #333;
+}
+
+h2 {
+  margin-top: 40px;
+  font-size: 24px;
+  color: #2c3e50;
+}
+
+/* Canvas Styles */
+canvas {
+  margin: 30px auto;
+  display: block;
+  max-width: 90%;
+  height: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  transition: transform 0.3s ease-in-out;
+}
+
+canvas:hover {
+  transform: scale(1.01);
+}
+
+/* Responsive Container */
+@media screen and (max-width: 768px) {
+  h2 {
+    font-size: 20px;
+  }
+
+  canvas {
+    max-width: 95%;
+    padding: 10px;
+  }
+}
+
+/* Optional: Scrollable body if too many charts */
+body {
+  overflow-y: scroll;
+  padding-bottom: 50px;
+}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ride Analytics Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="ride.css">
+  <style>
+    canvas { margin: 20px auto; display: block; max-width: 80vw; }
+    body { font-family: Arial, sans-serif; text-align: center; }
+  </style>
+</head>
+<body>
+
+<h2>Payment Method Distribution</h2>
+<canvas id="paymentChart"></canvas>
+
+<h2>Fare Distribution</h2>
+<canvas id="fareChart"></canvas>
+
+<h2>Fare by Ride Type</h2>
+<canvas id="fareRideChart"></canvas>
+
+<h2>Ratings Distribution</h2>
+<canvas id="ratingsChart"></canvas>
+
+<script>
+fetch("data/cleaned_data.json")
+  .then(response => response.json())
+  .then(data => {
+    const paymentCounts = {};
+    const fareData = [];
+    const rideTypes = {};
+    const driverRatings = [], customerRatings = [];
+
+    data.forEach(row => {
+      paymentCounts[row.Payment_Method] = (paymentCounts[row.Payment_Method] || 0) + 1;
+      fareData.push(row.Booking_Value);
+      if (!rideTypes[row.Vehicle_Type]) rideTypes[row.Vehicle_Type] = [];
+      rideTypes[row.Vehicle_Type].push(row.Booking_Value);
+      driverRatings.push(row.Driver_Ratings);
+      customerRatings.push(row.Customer_Rating);
+    });
+
+    // Chart 1: Payment Method Distribution
+    new Chart(document.getElementById("paymentChart"), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(paymentCounts),
+        datasets: [{
+          label: 'Number of Rides',
+          data: Object.values(paymentCounts),
+          backgroundColor: 'rgba(75, 192, 192, 0.6)'
+        }]
+      }
+    });
+
+    // Chart 2: Fare Distribution (bucketed)
+    const fareBuckets = {};
+    fareData.forEach(fare => {
+      const bucket = Math.floor(fare / 50) * 50; // 0-49, 50-99, etc.
+      fareBuckets[bucket] = (fareBuckets[bucket] || 0) + 1;
+    });
+
+    new Chart(document.getElementById("fareChart"), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(fareBuckets),
+        datasets: [{
+          label: 'Fare Bucket Count',
+          data: Object.values(fareBuckets),
+          backgroundColor: 'skyblue'
+        }]
+      },
+      options: {
+        scales: {
+          x: {
+            title: { display: true, text: 'Fare Range (approx.)' }
+          },
+          y: {
+            title: { display: true, text: 'Number of Rides' }
+          }
+        }
+      }
+    });
+
+    // Chart 3: Fare by Ride Type (average)
+    const rideLabels = Object.keys(rideTypes);
+    const rideAverages = rideLabels.map(r => {
+      const vals = rideTypes[r];
+      return vals.reduce((a, b) => a + b, 0) / vals.length;
+    });
+
+    new Chart(document.getElementById("fareRideChart"), {
+      type: 'bar',
+      data: {
+        labels: rideLabels,
+        datasets: [{
+          label: 'Average Fare',
+          data: rideAverages,
+          backgroundColor: 'rgba(255, 159, 64, 0.6)'
+        }]
+      }
+    });
+
+    // Chart 4: Ratings Distribution
+    new Chart(document.getElementById("ratingsChart"), {
+      type: 'line',
+      data: {
+        labels: driverRatings.map((_, i) => i + 1),
+        datasets: [
+          {
+            label: 'Driver Ratings',
+            data: driverRatings,
+            borderColor: 'green',
+            fill: false
+          },
+          {
+            label: 'Customer Ratings',
+            data: customerRatings,
+            borderColor: 'orange',
+            fill: false
+          }
+        ]
+      },
+      options: {
+        scales: {
+          y: {
+            min: 0,
+            max: 5,
+            title: { display: true, text: 'Rating' }
+          }
+        }
+      }
+    });
+  })
+  .catch(err => {
+    console.error("Error loading or parsing data:", err);
+  });
+</script>
+
+
+</body>
+</html>
